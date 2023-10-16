@@ -4,11 +4,14 @@ from rest_framework import status as s
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
-    get_object_or_404,
 )
 from rest_framework.response import Response
 
-from api.serializers import CitySerializer, WeatherSerializer
+from api.serializers import (
+    CitySerializer,
+    WeatherSerializer,
+    CityListSerializer,
+)
 from api.uttilities import get_weather
 from city.models import City
 
@@ -22,30 +25,48 @@ class WeatherView(RetrieveAPIView):
     serializer_class = WeatherSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        msg, status, response = None, None, None
-        # Get city_name from request and reformat to
+        # Добавить кэш!
+        msg, status, response = None, s.HTTP_400_BAD_REQUEST, None
+        # Get city_name from request and reformat it
         city_name = request.GET.get('city', '').capitalize()
-        # Get object
-        city = get_object_or_404(City, name=city_name)
 
         try:
+            # Get object
+            city = City.objects.get(name=city_name)
             # serializing result
             response = self.get_serializer(get_weather(city)).data
         except (AttributeError, KeyError) as error:
             msg = f'{type(error).__name__} - {str(error)}'
-            status = s.HTTP_400_BAD_REQUEST
+        except City.DoesNotExist:
+            msg = f'City with name {city_name} does not exist'
+            status = s.HTTP_404_NOT_FOUND
         except Exception as error:
             msg = f'Unknown error: {type(error).__name__} - {str(error)}'
             status = s.HTTP_500_INTERNAL_SERVER_ERROR
         finally:
-            if msg and status:
+            if msg:
                 logger.error(msg, exc_info=True)
                 return Response({'error': msg}, status=status)
             return Response(response)
 
 
 class SitiesView(ListAPIView):
-    """Return list of cities, which exist in DB."""
+    """Return list of cities."""
 
-    queryset = City.objects.all()
     serializer_class = CitySerializer
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.names_only = False
+
+    def get_queryset(self):
+        # Check if the request wants only city names
+        self.names_only = self.request.query_params.get('names_only', False)
+        if self.names_only:
+            return City.objects.values('name')
+        return City.objects.all()
+
+    def get_serializer(self, *args, **kwargs):
+        if self.names_only:
+            return CityListSerializer(*args, **kwargs)
+        return super().get_serializer(*args, **kwargs)
