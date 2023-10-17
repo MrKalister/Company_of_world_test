@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Optional, Union
 
 import requests
@@ -18,11 +19,19 @@ TG_TOKEN = env.str('TG_TOKEN')
 SERVICE_URL = env.str('SERVICE_URL', 'http://127.0.0.1:8000/api/v1/')
 CITIES_PAGE, CONFIRM_EXIT = range(2)
 LIMIT = REST_FRAMEWORK.get('PAGE_SIZE')
+# CACHE_EXPIRY = 1800  # 30 minutes
+CACHE_EXPIRY = 15
+city_list_cache = {}
+weather_cache = {}
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
 )
+
+
+class RateLimitExceededError(Exception):
+    pass
 
 
 async def send_message(
@@ -34,6 +43,18 @@ async def send_message(
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=text, reply_markup=reply_markup
     )
+
+
+def get_cache(element: Union[int, str], data: dict) -> Optional[str]:
+    """Function to retrieve cached city list data for a specific page"""
+
+    if element in data:
+        cached_data, timestamp = data[element]
+        current_time = time.time()
+
+        # If the data is still fresh, return it
+        if current_time - timestamp <= CACHE_EXPIRY:
+            return cached_data
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -63,28 +84,38 @@ async def get_weather(update: Update, context: CallbackContext) -> None:
 
     keyboard = ReplyKeyboardMarkup([['Узнать погоду', 'Список городов']])
     city_name = update.message.text.capitalize()
-    url = SERVICE_URL + 'weather/'
-    response = requests.get(url, params={'city': city_name})
-    weather_data = response.json()
-    error = weather_data.get('error')
-    if error:
-        if error == f'City with name {city_name} does not exist':
-            msg = (
-                f'К сожалению, города с названием "{city_name}" '
-                'пока нет в нашей базе. Попробуйте название другого города.'
-            )
+
+    # cache
+    msg = get_cache(city_name, weather_cache)
+
+    if not msg:
+        url = SERVICE_URL + 'weather/'
+        response = requests.get(url, params={'city': city_name})
+        if response.status_code == 429:
+            msg = 'Превышен лимит запросов, попробуйте повторить позже.'
         else:
-            msg = (
-                f'Неожиданная ошибка, статус {response.status_code}. '
-                'Повторите попытку позже.'
-            )
-    else:
-        msg = (
-            f'Прогноз погоды для {city_name}:\n'
-            f'температура {weather_data.get("temperature")} °C,\n'
-            f'давление {weather_data.get("pressure_mm")} мм рт. ст,\n'
-            f'скорость ветра {weather_data.get("wind_speed")} м/с.'
-        )
+            weather_data = response.json()
+            error = weather_data.get('error')
+            if error:
+                if error == f'City with name {city_name} does not exist':
+                    msg = (
+                        f'К сожалению, города с названием "{city_name}" '
+                        'пока нет в нашей базе. Попробуйте название другого города.'
+                    )
+                else:
+                    msg = (
+                        f'Неожиданная ошибка, статус {response.status_code}. '
+                        'Повторите попытку позже.'
+                    )
+            else:
+                msg = (
+                    f'Прогноз погоды для {city_name}:\n'
+                    f'температура {weather_data.get("temperature")} °C,\n'
+                    f'давление {weather_data.get("pressure_mm")} мм рт. ст,\n'
+                    f'скорость ветра {weather_data.get("wind_speed")} м/с.'
+                )
+                # Add to cache
+                weather_cache[city_name] = (msg, time.time())
 
     await send_message(update, msg, context, reply_markup=keyboard)
 
@@ -97,30 +128,38 @@ async def send_city_list_message(
     of city names.
     """
 
-    limit = LIMIT
-    offset = (page - 1) * limit
+    keyboard = ReplyKeyboardMarkup([['Следующая страница', 'Выйти']])
 
-    url = SERVICE_URL + 'cities_list/'
-    params = {'limit': limit, 'offset': offset, 'city_names': True}
-    response = requests.get(url, params)
-    data = response.json().get('results')
+    # cache
+    msg = get_cache(page, city_list_cache)
+    if not msg:
+        # If data is not in the cache, fetch it from the API
+        limit = LIMIT
+        offset = (page - 1) * limit
 
-    if not data:
-        await send_message(update, 'Список городов пуст.', context)
-        return
+        url = SERVICE_URL + 'cities_list/'
+        params = {'limit': limit, 'offset': offset, 'city_names': True}
+        response = requests.get(url, params)
 
-    city_names = [item['name'] for item in data]
-    formatted_cities = '\n'.join(
-        [
-            f'{index}. {city}'
-            for index, city in enumerate(city_names, start=offset + 1)
-        ]
-    )
-    await send_message(
-        update,
-        f'Список городов (страница {page}):\n{formatted_cities}',
-        context,
-    )
+        if response.status_code == 429:
+            raise RateLimitExceededError()
+        data = response.json().get('results')
+        if not data:
+            msg = 'Список городов пуст.'
+        else:
+            city_names = [item['name'] for item in data]
+            formatted_cities = '\n'.join(
+                [
+                    f'{index}. {city}'
+                    for index, city in enumerate(city_names, start=offset + 1)
+                ]
+            )
+            msg = f'Список городов (страница {page}):\n{formatted_cities}'
+
+            # Cache the city list data for this page
+            city_list_cache[page] = (msg, time.time())
+
+    await send_message(update, msg, context, reply_markup=keyboard)
 
 
 async def show_cities_page(update: Update, context: CallbackContext) -> int:
@@ -129,26 +168,38 @@ async def show_cities_page(update: Update, context: CallbackContext) -> int:
     navigation options (next page, exit).
     """
 
-    page = 1  # beginning with first page
-    await send_city_list_message(update, page, context)
-    keyboard = ReplyKeyboardMarkup([['Следующая страница', 'Выйти']])
-
-    await send_message(
-        update,
-        'Для следующей страницы нажмите "Следующая страница".\n'
-        'Для выхода нажмите "Выйти".',
-        context,
-        reply_markup=keyboard,
-    )
+    try:
+        page = 1  # beginning with first page
+        await send_city_list_message(update, page, context)
+        await send_message(
+            update,
+            'Для следующей страницы нажмите "Следующая страница".\n'
+            'Для выхода нажмите "Выйти".',
+            context,
+        )
+    except RateLimitExceededError:
+        await send_message(
+            update,
+            'Превышен лимит запросов, попробуйте повторить позже.',
+            context,
+        )
     return CITIES_PAGE
 
 
 async def next_page(update: Update, context: CallbackContext) -> int:
     """SHow the next page of city names to the user."""
 
+    # increment page's number
     page = context.user_data.get('page', 1) + 1
     context.user_data['page'] = page
-    await send_city_list_message(update, page, context)
+    try:
+        await send_city_list_message(update, page, context)
+    except RateLimitExceededError:
+        await send_message(
+            update,
+            'Превышен лимит запросов, попробуйте повторить позже.',
+            context,
+        )
     return CITIES_PAGE
 
 
@@ -167,11 +218,13 @@ async def confirm_exit(update: Update, context: CallbackContext) -> int:
 
 async def handle_exit_confirmation(
         update: Update, context: CallbackContext
-) -> Union[int, None]:
+) -> Optional[int]:
     """Check the user's answer."""
 
     keyboard = ReplyKeyboardMarkup([['Узнать погоду', 'Список городов']])
     if update.message.text == 'Да':
+        # In case of exit set the first page number.
+        context.user_data['page'] = 1
         await send_message(
             update,
             'Вы вышли из списка городов. Выберите действие:',
@@ -225,4 +278,4 @@ if __name__ == '__main__':
     for handler in handlers:
         application.add_handler(handler)
 
-    application.run_polling()
+    application.run_polling(timeout=20)
