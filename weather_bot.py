@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 from typing import Optional, Union
 
@@ -31,7 +32,11 @@ logging.basicConfig(
 
 
 class RateLimitExceededError(Exception):
-    pass
+    def __init__(
+            self, gap, message="Превышен лимит запросов, повторите через "
+    ):
+        self.message = message + gap + ' секунд.'
+        super().__init__(self.message)
 
 
 async def send_message(
@@ -79,20 +84,33 @@ async def say_city(update: Update, context: CallbackContext) -> None:
     )
 
 
+def get_gap(r: requests.Response) -> str:
+    """Parse time gap from response."""
+
+    return re.search(r'\d+', r.json().get('detail')).group(0)
+
+
 async def get_weather(update: Update, context: CallbackContext) -> None:
     """Get weather for city from service."""
 
-    keyboard = ReplyKeyboardMarkup([['Узнать погоду', 'Список городов']])
-    city_name = update.message.text.capitalize()
+    keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
+        [['Узнать погоду', 'Список городов']]
+    )
+    city_name: str = update.message.text.capitalize()
 
     # cache
-    msg = get_cache(city_name, weather_cache)
+    msg: Union[str, None] = get_cache(city_name, weather_cache)
 
     if not msg:
-        url = SERVICE_URL + 'weather/'
-        response = requests.get(url, params={'city': city_name})
+        url: str = SERVICE_URL + 'weather/'
+        response: requests.Response = requests.get(
+            url, params={'city': city_name}
+        )
         if response.status_code == 429:
-            msg = 'Превышен лимит запросов, попробуйте повторить позже.'
+            gap: str = get_gap(response)
+            msg: str = (
+                f'Превышен лимит запросов, повторите через {gap} секунд.'
+            )
         else:
             weather_data = response.json()
             error = weather_data.get('error')
@@ -142,7 +160,9 @@ async def send_city_list_message(
         response = requests.get(url, params)
 
         if response.status_code == 429:
-            raise RateLimitExceededError()
+            detail = response.json().get('detail')
+            gap = re.search(r'\d+', detail).group(0)
+            raise RateLimitExceededError(gap=gap)
         data = response.json().get('results')
         if not data:
             msg = 'Список городов пуст.'
@@ -177,12 +197,8 @@ async def show_cities_page(update: Update, context: CallbackContext) -> int:
             'Для выхода нажмите "Выйти".',
             context,
         )
-    except RateLimitExceededError:
-        await send_message(
-            update,
-            'Превышен лимит запросов, попробуйте повторить позже.',
-            context,
-        )
+    except RateLimitExceededError as e:
+        await send_message(update, str(e), context)
     return CITIES_PAGE
 
 
@@ -194,12 +210,8 @@ async def next_page(update: Update, context: CallbackContext) -> int:
     context.user_data['page'] = page
     try:
         await send_city_list_message(update, page, context)
-    except RateLimitExceededError:
-        await send_message(
-            update,
-            'Превышен лимит запросов, попробуйте повторить позже.',
-            context,
-        )
+    except RateLimitExceededError as e:
+        await send_message(update, str(e), context)
     return CITIES_PAGE
 
 

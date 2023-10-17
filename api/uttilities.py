@@ -1,8 +1,11 @@
 import time
 
+import requests
+
 from config.settings import env
 
 API_KEY = env.str('YANDEX_API_KEY')
+PLUG = env.bool('PLUG', False)  # Заглушка
 YANDEX_WEATHER_URL = env.str(
     'YANDEX_WEATHER_URL', 'https://api.weather.yandex.ru/v2/forecast/'
 )
@@ -27,9 +30,13 @@ def get_weather(city):
         'lat': city.latitude,
         'lon': city.longitude,
     }
-    # response = requests.get(YANDEX_WEATHER_URL, params=params, headers=HEADERS)
-    # data = response.json().get('fact')
-    data = {'temp': 12, 'pressure_mm': 764, 'wind_speed': 2.8}
+    if PLUG:
+        data = {'temp': 12, 'pressure_mm': 764, 'wind_speed': 2.8}
+    else:
+        response = requests.get(
+            YANDEX_WEATHER_URL, params=params, headers=HEADERS
+        )
+        data = response.json().get('fact')
 
     # Parse the data and store it in the cache with the current timestamp
     weather_data = parse_data(data)
