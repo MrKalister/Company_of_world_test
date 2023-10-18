@@ -27,7 +27,6 @@ class WeatherView(RetrieveAPIView):
     throttle_scope = 'low_request'  # setting - DEFAULT_THROTTLE_RATES
 
     def retrieve(self, request, *args, **kwargs):
-        # Добавить кэш!
         msg, status, response = None, s.HTTP_400_BAD_REQUEST, None
         # Get city_name from request and reformat it
         city_name = request.GET.get('city', '').capitalize()

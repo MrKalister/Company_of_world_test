@@ -6,6 +6,8 @@ from city.models import City
 class CityModelTest(TestCase):
     @classmethod
     def setUpClass(cls):
+        # Help to avoid error:
+        # 'AttributeError: type object '<имя_класса>' has no attribute 'cls_atomics'
         super().setUpClass()
         # Creating a test record in the database
         # and save the created record as a class variable
@@ -15,29 +17,20 @@ class CityModelTest(TestCase):
             longitude='37.617634',
         )
 
-    def test_name_label(self):
-        """Verbose_name of the name field matches the expected one."""
+    def test_verbose_name(self):
+        """Verbose_name in the fields matches the expected."""
 
         city = CityModelTest.city
-        # Get the verbose_name value for name from the City class property
-        verbose = city._meta.get_field('name').verbose_name
-        self.assertEqual(verbose, 'Название')
-
-    def test_latitude_label(self):
-        """Verbose_name of the latitude field matches the expected one."""
-
-        city = CityModelTest.city
-        # Get the verbose_name value for latitude from the City class property
-        verbose = city._meta.get_field('latitude').verbose_name
-        self.assertEqual(verbose, 'Широта')
-
-    def test_longitude_label(self):
-        """Verbose_name of the longitude field matches the expected one."""
-
-        city = CityModelTest.city
-        # Get the verbose_name value for longitude from the City class property
-        verbose = city._meta.get_field('longitude').verbose_name
-        self.assertEqual(verbose, 'Долгота')
+        field_verboses = {
+            'name': 'Название',
+            'latitude': 'Широта',
+            'longitude': 'Долгота',
+        }
+        for field, expected_value in field_verboses.items():
+            with self.subTest(field=field):
+                self.assertEqual(
+                    city._meta.get_field(field).verbose_name, expected_value
+                )
 
     def test_object_name_is_name_fild(self):
         """__str__ city is a str with content city.name."""
