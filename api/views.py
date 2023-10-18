@@ -41,6 +41,11 @@ class WeatherView(RetrieveAPIView):
         except City.DoesNotExist:
             msg = f'City with name {city_name} does not exist'
             status = s.HTTP_404_NOT_FOUND
+        except City.MultipleObjectsReturned:
+            # There may be more than one city with the same name in the DB.
+            # Return only the first city by id
+            city = City.objects.filter(name=city_name).first()
+            response = self.get_serializer(get_weather(city)).data
         except Exception as error:
             msg = f'Unknown error: {type(error).__name__} - {str(error)}'
             status = s.HTTP_500_INTERNAL_SERVER_ERROR
