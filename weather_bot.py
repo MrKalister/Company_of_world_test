@@ -20,8 +20,7 @@ TG_TOKEN = env.str('TG_TOKEN')
 SERVICE_URL = env.str('SERVICE_URL', 'http://127.0.0.1:8000/api/v1/')
 CITIES_PAGE, CONFIRM_EXIT = range(2)
 LIMIT = REST_FRAMEWORK.get('PAGE_SIZE')
-# CACHE_EXPIRY = 1800  # 30 minutes
-CACHE_EXPIRY = 15
+CACHE_EXPIRY = 1800  # 30 minutes
 city_list_cache = {}
 weather_cache = {}
 

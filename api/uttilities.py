@@ -12,6 +12,7 @@ YANDEX_WEATHER_URL = env.str(
 HEADERS = {'X-Yandex-API-Key': API_KEY}
 CACHE_EXPIRY = 1800  # 30 minutes
 weather_cache = {}
+test_data = {'temp': 12, 'pressure_mm': 764, 'wind_speed': 2.8}
 
 
 def get_weather(city):
@@ -30,13 +31,16 @@ def get_weather(city):
         'lat': city.latitude,
         'lon': city.longitude,
     }
-    if PLUG:
-        data = {'temp': 12, 'pressure_mm': 764, 'wind_speed': 2.8}
-    else:
-        response = requests.get(
-            YANDEX_WEATHER_URL, params=params, headers=HEADERS
+
+    data = (
+        (
+            requests.get(YANDEX_WEATHER_URL, params=params, headers=HEADERS)
+            .json()
+            .get('fact')
         )
-        data = response.json().get('fact')
+        if not PLUG
+        else test_data
+    )
 
     # Parse the data and store it in the cache with the current timestamp
     weather_data = parse_data(data)
