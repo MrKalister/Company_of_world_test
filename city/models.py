@@ -2,9 +2,9 @@ from django.db import models
 
 
 class City(models.Model):
-    name = models.CharField(max_length=100)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    name = models.CharField('Название', max_length=100)
+    latitude = models.FloatField('Широта')
+    longitude = models.FloatField('Долгота')
 
     def __str__(self):
         return self.name

@@ -23,6 +23,7 @@ class WeatherView(RetrieveAPIView):
 
     queryset = City.objects.all()
     serializer_class = WeatherSerializer
+
     throttle_scope = 'low_request'  # setting - DEFAULT_THROTTLE_RATES
 
     def retrieve(self, request, *args, **kwargs):
