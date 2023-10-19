@@ -4,6 +4,7 @@ from rest_framework import status as s
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
+    get_object_or_404,
 )
 from rest_framework.response import Response
 
@@ -12,8 +13,9 @@ from api.serializers import (
     WeatherSerializer,
     CityListSerializer,
 )
-from api.uttilities import get_weather
+from api.utilities import get_weather
 from city.models import City
+from config.settings import PLUG
 
 logger = logging.getLogger('django.server')
 
@@ -23,37 +25,33 @@ class WeatherView(RetrieveAPIView):
 
     queryset = City.objects.all()
     serializer_class = WeatherSerializer
-
-    throttle_scope = 'low_request'  # setting - DEFAULT_THROTTLE_RATES
+    # From setting - DEFAULT_THROTTLE_RATES
+    throttle_scope = 'low_request' if not PLUG else 'anon'
 
     def retrieve(self, request, *args, **kwargs):
-        msg, status, response = None, s.HTTP_400_BAD_REQUEST, None
         # Get city_name from request and reformat it
         city_name = request.GET.get('city', '').capitalize()
-
         try:
             # Get object
-            city = City.objects.get(name=city_name)
-            # serializing result
-            response = self.get_serializer(get_weather(city)).data
-        except (AttributeError, KeyError) as error:
-            msg = f'{type(error).__name__} - {str(error)}'
-        except City.DoesNotExist:
-            msg = f'City with name {city_name} does not exist'
-            status = s.HTTP_404_NOT_FOUND
+            city = get_object_or_404(City, name=city_name)
         except City.MultipleObjectsReturned:
             # There may be more than one city with the same name in the DB.
             # Return only the first city by id
-            city = City.objects.filter(name=city_name).first()
+            city = (
+                self.get_queryset()
+                .filter(name=city_name)
+                .order_by('id')
+                .last()
+            )
+        try:
             response = self.get_serializer(get_weather(city)).data
         except Exception as error:
-            msg = f'Unknown error: {type(error).__name__} - {str(error)}'
-            status = s.HTTP_500_INTERNAL_SERVER_ERROR
-        finally:
-            if msg:
-                logger.error(msg, exc_info=True)
-                return Response({'error': msg}, status=status)
-            return Response(response)
+            msg = f'{type(error).__name__} - {str(error)}'
+            logger.error(msg, exc_info=True)
+            return Response(
+                {'error': msg}, status=s.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        return Response(response)
 
 
 class SitiesView(ListAPIView):

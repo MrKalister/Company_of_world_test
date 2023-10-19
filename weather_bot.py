@@ -105,29 +105,26 @@ async def get_weather(update: Update, context: CallbackContext) -> None:
         response: requests.Response = requests.get(
             url, params={'city': city_name}
         )
+        print(response.status_code)
         if response.status_code == 429:
             gap: str = get_gap(response)
             msg: str = (
                 f'Превышен лимит запросов, повторите через {gap} секунд.'
             )
+        elif response.status_code == 404:
+            msg = (
+                f'К сожалению, города с названием "{city_name}" '
+                'пока нет в нашей базе. Попробуйте название другого города.'
+            )
         else:
             weather_data = response.json()
             error = weather_data.get('error')
             if error:
-                if error == f'City with name {city_name} does not exist':
-                    msg = (
-                        f'К сожалению, города с названием "{city_name}" '
-                        'пока нет в нашей базе. Попробуйте название другого города.'
-                    )
-                else:
-                    msg = (
-                        f'Неожиданная ошибка, статус {response.status_code}. '
-                        'Повторите попытку позже.'
-                    )
+                msg = 'Неожиданная ошибка, статус Повторите попытку позже.'
             else:
                 msg = (
                     f'Прогноз погоды для {city_name}:\n'
-                    f'температура {weather_data.get("temperature")} °C,\n'
+                    f'температура {weather_data.get("temp")} °C,\n'
                     f'давление {weather_data.get("pressure_mm")} мм рт. ст,\n'
                     f'скорость ветра {weather_data.get("wind_speed")} м/с.'
                 )

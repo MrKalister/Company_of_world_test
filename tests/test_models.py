@@ -1,27 +1,21 @@
+from django.db.utils import IntegrityError
 from django.test import TestCase
 
 from city.models import City
+from tests.factory import CityFactory
 
 
 class CityModelTest(TestCase):
     @classmethod
-    def setUpClass(cls):
-        # Help to avoid error:
-        # 'AttributeError: type object '<имя_класса>' has no attribute 'cls_atomics'
+    def setUpClass(cls) -> None:
+        """Set up the test class by creating a City instance."""
         super().setUpClass()
-        # Creating a test record in the database
-        # and save the created record as a class variable
-        cls.city = City.objects.create(
-            name='Москва',
-            latitude='55.755787',
-            longitude='37.617634',
-        )
+        cls.city: City = CityFactory()
 
-    def test_verbose_name(self):
-        """Verbose_name in the fields matches the expected."""
-
-        city = CityModelTest.city
-        field_verboses = {
+    def test_field_verbose_names(self) -> None:
+        """Field verbose names match expected values."""
+        city: City = CityModelTest.city
+        field_verboses: dict[str, str] = {
             'name': 'Название',
             'latitude': 'Широта',
             'longitude': 'Долгота',
@@ -32,9 +26,23 @@ class CityModelTest(TestCase):
                     city._meta.get_field(field).verbose_name, expected_value
                 )
 
-    def test_object_name_is_name_fild(self):
-        """__str__ city is a str with content city.name."""
-
-        city = CityModelTest.city
-        expected_object_name = city.name
+    def test_str_method(self) -> None:
+        """Test '__str__' method of City model."""
+        city: City = CityModelTest.city
+        expected_object_name: str = city.name
         self.assertEqual(expected_object_name, str(city))
+
+    def test_duplicate_name_validation(self) -> None:
+        """Test duplicate name validation."""
+        city2: City = CityFactory(name=CityModelTest.city.name)
+        self.assertIsInstance(city2, City)
+        self.assertEqual(City.objects.filter(name=city2.name).count(), 2)
+
+    def test_coordinates_integrity(self) -> None:
+        """Test coordinates integrity (IntegrityError)."""
+        with self.assertRaises(IntegrityError):
+            CityFactory(
+                name=CityModelTest.city.name,
+                latitude=CityModelTest.city.latitude,
+                longitude=CityModelTest.city.longitude,
+            )

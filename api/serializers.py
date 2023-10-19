@@ -19,7 +19,7 @@ class CitySerializer(serializers.ModelSerializer):
 class WeatherSerializer(serializers.Serializer):
     """Serialize weather in a city."""
 
-    temperature = serializers.IntegerField()
+    temp = serializers.IntegerField()
     pressure_mm = serializers.IntegerField()
     wind_speed = serializers.FloatField()
 

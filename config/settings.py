@@ -9,6 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env.read_env(os.path.join(BASE_DIR, 'infra', '.env'))
 
 DEBUG = env.bool('DEBUG', False)
+PLUG = env.bool('PLUG', False)  # Заглушка
+SERVICE_URL = env.str('SERVICE_URL', 'http://127.0.0.1:8000/api/v1/')
 SECRET_KEY = env.str('SECRET_KEY', 'the-best-pass')
 ALLOWED_HOSTS = env.str('ALLOWED_HOSTS').split(',')
 
