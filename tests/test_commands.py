@@ -66,7 +66,7 @@ class ExcelImportTest(BaseTestCase):
         self.assertIn(exp_output, output_text)
 
     def test_no_new_data_import_output(self) -> None:
-        """Test output when a superuser already exists."""
+        """Test output when a file already upload."""
         exp_output: str = 'No new cities to upload'
         ExcelImportTest.run_import_cities_command(self.captured_output)
         output_text: str = self.captured_output.getvalue()

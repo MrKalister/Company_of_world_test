@@ -30,7 +30,7 @@ class WeatherView(RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         # Get city_name from request and reformat it
-        city_name = request.GET.get('city', '').capitalize()
+        city_name = request.GET.get('city', '').title()
         try:
             # Get object
             city = get_object_or_404(City, name=city_name)

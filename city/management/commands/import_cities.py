@@ -22,7 +22,7 @@ class Command(BaseCommand):
             )
 
             for row in sheet.iter_rows(min_row=1, values_only=True):
-                name, latitude, longitude = row[0], row[1], row[2]
+                name, latitude, longitude = row[0].title(), row[1], row[2]
                 if name not in existing_city_names:
                     cities_to_create.append(
                         City(

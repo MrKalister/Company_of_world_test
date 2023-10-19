@@ -12,7 +12,7 @@ class WeatherUrlTest(TestCase):
         """Set up the test class with a test record in the database and a client."""
         super().setUpClass()
         cls.client: Client = Client()
-        cls.city = CityFactory(name='Москва')
+        cls.city = CityFactory()
 
     def _test_weather(self, city_name: str, expected_status: int) -> None:
         """Test the weather endpoint with a given city name."""

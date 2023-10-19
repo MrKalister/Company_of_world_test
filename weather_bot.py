@@ -95,7 +95,7 @@ async def get_weather(update: Update, context: CallbackContext) -> None:
     keyboard: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
         [['Узнать погоду', 'Список городов']]
     )
-    city_name: str = update.message.text.capitalize()
+    city_name: str = update.message.text.title()
 
     # cache
     msg: Union[str, None] = get_cache(city_name, weather_cache)
