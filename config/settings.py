@@ -115,6 +115,7 @@ MEDIA_URL = 'media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATA_FILES_DIR = os.path.join(BASE_DIR, 'data')
+FILE_NAME = 'spisok_gorodov_RU.xlsx'
 
 # LOGGING
 LOGGING = {

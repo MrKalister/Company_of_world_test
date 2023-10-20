@@ -1,5 +1,4 @@
-# Company_of_world_test
-Результат выполнения тестового задания
+# Задание:
 
 Задача №1
 Реализовать АР!, которое на НТТР-запрос СЕТ /weather?city=<city_name>, где
@@ -26,5 +25,107 @@ python >= 3.8
 Django >= 3.2
 все остальное на ваше усмотрение
 
-Код должен быть выложен в открытом репозитории на дИПиБ, содержать файл
+Код должен быть выложен в открытом репозитории на GitHub, содержать файл
 requirements.txt со списком зависимостей и инструкцию по запуску.
+
+# Используемые технологии:
+
+* Python==3.10.12
+* Django==4.1.3
+* djangorestframework==3.14.0
+* python-telegram-bot==20.6
+
+# Инструкция по запуску:
+
+#### 1. Склонируйте репозиторий.
+
+```bash
+git clone git@github.com:MrKalister/Company_of_world_test.git
+```
+
+#### 2. Создайте и активируйте виртуальную среду(при необходимости).
+
+Команда для установки виртуальной среды на Mac или Linux:
+
+```bash
+python3 -m venv env
+source env/bin/activate
+```
+
+Команда для Windows:
+
+```bash
+python -m venv venv
+. venv/Scripts/activate
+```
+
+#### 3. Перейдите в каталог infra.
+
+```bash
+cd infra
+```
+
+#### 4. Скопируйте файл ".env-example" и заполните своими данными.
+
+```bash
+cp .env-example .env
+```
+
+**Обратите внимание на переменную PLUG.
+Если ее значение True, то будет отключен кэш при обращении к утилите get_weather,
+а также буду выдаваться тестовые данные, вместо реального запроса к сервису погоды.**
+
+#### 5. Установите зависимости.
+
+**Убедитесь, что виртуальное окружение активировано!**
+
+```bash
+pip install -r requirements.txt
+```
+
+*В случае отсутствия каких-либо библиотек попробуйте установить полный перечень зависимостей*
+
+```bash
+pip install -r full_requirements.txt
+```
+
+#### 6. Запуск проекта.
+
+```bash
+python manage.py makemigrations && python manage.py migrate && python manage.py runserver
+```
+
+**Дополнительные возможности:**
+
+* Тестирование:
+
+```bash
+python manage.py test
+```
+
+* Создание суперпользователя:
+  **Убедитесь что среди переменных среды вы указали SUPERUSER_USERNAME, SUPERUSER_EMAIL и SUPERUSER_PASSWORD**
+
+```bash
+python manage.py create_admin
+```
+
+* Загрузка fixtures:
+
+```bash
+python manage.py import_cities
+```
+
+**Название файла задается в settings под константой "FILE_NAME".**
+
+#### 7. Наслаждайтесь.
+
+Для примера вы можете открыть список городов - [URL](http://127.0.0.1:8000/api/v1/cities_list/)
+
+Документация API:
+[Redoc](http://127.0.0.1:8000/redoc/)
+[Swagger](http://127.0.0.1:8000/swagger/)
+
+### Автор
+
+**Novikov Maxim** - [github](http://github.com/MrKalister)

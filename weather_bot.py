@@ -32,17 +32,17 @@ logging.basicConfig(
 
 class RateLimitExceededError(Exception):
     def __init__(
-            self, gap, message="Превышен лимит запросов, повторите через "
+        self, gap, message="Превышен лимит запросов, повторите через "
     ):
         self.message = message + gap + ' секунд.'
         super().__init__(self.message)
 
 
 async def send_message(
-        update: Update,
-        text: str,
-        context: CallbackContext,
-        reply_markup: Optional[ReplyKeyboardMarkup] = None,
+    update: Update,
+    text: str,
+    context: CallbackContext,
+    reply_markup: Optional[ReplyKeyboardMarkup] = None,
 ) -> None:
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=text, reply_markup=reply_markup
@@ -135,7 +135,7 @@ async def get_weather(update: Update, context: CallbackContext) -> None:
 
 
 async def send_city_list_message(
-        update: Update, page: int, context: CallbackContext
+    update: Update, page: int, context: CallbackContext
 ) -> None:
     """
     Send a message to the specified chat ID containing a formatted list
@@ -225,7 +225,7 @@ async def confirm_exit(update: Update, context: CallbackContext) -> int:
 
 
 async def handle_exit_confirmation(
-        update: Update, context: CallbackContext
+    update: Update, context: CallbackContext
 ) -> Optional[int]:
     """Check the user's answer."""
 

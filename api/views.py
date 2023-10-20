@@ -55,7 +55,9 @@ class WeatherView(RetrieveAPIView):
 
 
 class SitiesView(ListAPIView):
-    """Return list of cities."""
+    """
+    Return list of cities.
+    """
 
     serializer_class = CitySerializer
 

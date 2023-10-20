@@ -41,7 +41,7 @@ class WeatherListUrlTest(TestCase):
         CityFactory.create_batch(15)
 
     def _test_cities_list(
-            self, expected_status: int, data: Optional[dict] = None
+        self, expected_status: int, data: Optional[dict] = None
     ) -> None:
         """Test the cities_list endpoint with optional parameters."""
         response = self.client.get(SERVICE_URL + 'cities_list/', data=data)

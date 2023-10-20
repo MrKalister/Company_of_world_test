@@ -4,15 +4,14 @@ import openpyxl
 from django.core.management.base import BaseCommand
 
 from city.models import City
-from config.settings import DATA_FILES_DIR
+from config.settings import DATA_FILES_DIR, FILE_NAME
 
 
 class Command(BaseCommand):
     """Uploader data in the database from a excel file."""
 
     def handle(self, *args, **options):
-        file_name = 'spisok_gorodov_RU.xlsx'
-        file_path = os.path.join(DATA_FILES_DIR, file_name)
+        file_path = os.path.join(DATA_FILES_DIR, FILE_NAME)
 
         try:
             sheet = openpyxl.load_workbook(file_path).active

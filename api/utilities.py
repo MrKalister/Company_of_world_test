@@ -9,10 +9,11 @@ YANDEX_WEATHER_URL = env.str(
     'YANDEX_WEATHER_URL', 'https://api.weather.yandex.ru/v2/forecast/'
 )
 HEADERS = {'X-Yandex-API-Key': API_KEY}
-CACHE_EXPIRY = 0
-if not PLUG:
-    CACHE_EXPIRY = 1800  # 30 minutes
+CACHE_EXPIRY = 1800  # 30 minutes
 weather_cache = {}
+
+if PLUG:
+    CACHE_EXPIRY = 0
 test_data = {'temp': 12, 'pressure_mm': 764, 'wind_speed': 2.8}
 
 
