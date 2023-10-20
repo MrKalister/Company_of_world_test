@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import TestCase
+from django.test import tag
 
 from config.settings import env, DATA_FILES_DIR
 
@@ -12,6 +13,7 @@ username = env.str('SUPERUSER_USERNAME')
 password = env.str('SUPERUSER_PASSWORD')
 
 
+@tag('long_upload')
 class BaseTestCase(TestCase):
     command_name = None
 

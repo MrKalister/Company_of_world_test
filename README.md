@@ -103,6 +103,12 @@ python manage.py makemigrations && python manage.py migrate && python manage.py 
 python manage.py test
 ```
 
+*Быстрое тестирование исключает тест команды import_cities.*
+
+```bash
+python manage.py test --exclude-tag long_upload
+```
+
 * Создание суперпользователя:
 
 **Убедитесь что среди переменных среды вы указали SUPERUSER_USERNAME, SUPERUSER_EMAIL и SUPERUSER_PASSWORD**
