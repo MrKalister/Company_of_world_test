@@ -127,6 +127,12 @@ python manage.py import_cities
 [Redoc](http://127.0.0.1:8000/redoc/)
 [Swagger](http://127.0.0.1:8000/swagger/)
 
+#### 8. Запуск бота.
+
+```bash
+python weather_bot.py
+```
+
 ### Автор
 
 Буду рад любым отзывам!
