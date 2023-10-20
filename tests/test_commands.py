@@ -1,5 +1,6 @@
 import io
 import os
+from typing import Optional
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -15,7 +16,7 @@ password = env.str('SUPERUSER_PASSWORD')
 
 @tag('long_upload')
 class BaseTestCase(TestCase):
-    command_name = None
+    command_name: Optional[str] = None
 
     @classmethod
     def setUpClass(cls) -> None:
