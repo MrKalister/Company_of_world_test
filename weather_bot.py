@@ -249,6 +249,7 @@ if __name__ == '__main__':
 
     handlers = [
         CommandHandler('start', start),
+        CommandHandler('forecast', say_city),
         MessageHandler(filters.Regex(r'^Узнать погоду$'), say_city),
         ConversationHandler(
             entry_points=[
