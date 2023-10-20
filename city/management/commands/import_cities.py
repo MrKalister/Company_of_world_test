@@ -1,4 +1,5 @@
 import os
+from typing import Set, List
 
 import openpyxl
 from django.core.management.base import BaseCommand
@@ -8,20 +9,22 @@ from config.settings import DATA_FILES_DIR, FILE_NAME
 
 
 class Command(BaseCommand):
-    """Uploader data in the database from a excel file."""
+    """Uploader data in the database from an Excel file."""
 
-    def handle(self, *args, **options):
-        file_path = os.path.join(DATA_FILES_DIR, FILE_NAME)
+    def handle(self, *args, **options) -> None:
+        file_path: str = os.path.join(DATA_FILES_DIR, FILE_NAME)
 
         try:
             sheet = openpyxl.load_workbook(file_path).active
-            cities_to_create = []
-            existing_city_names = set(
+            cities_to_create: List[City] = []
+            existing_city_names: Set = set(
                 City.objects.values_list('name', flat=True)
             )
 
             for row in sheet.iter_rows(min_row=1, values_only=True):
-                name, latitude, longitude = row[0].title(), row[1], row[2]
+                name: str = row[0].title()
+                latitude: float = row[1]
+                longitude: float = row[2]
                 if name not in existing_city_names:
                     cities_to_create.append(
                         City(

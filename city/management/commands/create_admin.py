@@ -5,10 +5,10 @@ from config.settings import env
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
-        username = env.str('SUPERUSER_USERNAME')
-        email = env.str('SUPERUSER_EMAIL')
-        password = env.str('SUPERUSER_PASSWORD')
+    def handle(self, *args, **options) -> None:
+        username: str = env.str('SUPERUSER_USERNAME')
+        email: str = env.str('SUPERUSER_EMAIL')
+        password: str = env.str('SUPERUSER_PASSWORD')
 
         if not User.objects.filter(username=username).exists():
             User.objects.create_superuser(
