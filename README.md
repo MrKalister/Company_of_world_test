@@ -16,7 +16,7 @@
 Задача №3 (не обязательная)
 
 Если ты быстро со всем справился и хочешь сделать код еще лучше то можно
-написать ипй тесты, будет большим плюсом --)
+написать unit тесты, будет большим плюсом ;-)
 
 Все задания должны быть реализованы в одном проекте
 
@@ -104,7 +104,8 @@ python manage.py test
 ```
 
 * Создание суперпользователя:
-  **Убедитесь что среди переменных среды вы указали SUPERUSER_USERNAME, SUPERUSER_EMAIL и SUPERUSER_PASSWORD**
+
+**Убедитесь что среди переменных среды вы указали SUPERUSER_USERNAME, SUPERUSER_EMAIL и SUPERUSER_PASSWORD**
 
 ```bash
 python manage.py create_admin
@@ -112,11 +113,11 @@ python manage.py create_admin
 
 * Загрузка fixtures:
 
+**Название файла задается в settings под константой "FILE_NAME".**
+
 ```bash
 python manage.py import_cities
 ```
-
-**Название файла задается в settings под константой "FILE_NAME".**
 
 #### 7. Наслаждайтесь.
 
@@ -128,4 +129,5 @@ python manage.py import_cities
 
 ### Автор
 
+Буду рад любым отзывам!
 **Novikov Maxim** - [github](http://github.com/MrKalister)
