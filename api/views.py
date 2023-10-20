@@ -30,16 +30,16 @@ class WeatherView(RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         # Get city_name from request and reformat it
-        city_name = request.GET.get('city', '').title()
+        city_name: str = request.GET.get('city', '').title()
         try:
             # Get object
-            city = get_object_or_404(City, name=city_name)
+            city = get_object_or_404(City, name__icontains=city_name)
         except City.MultipleObjectsReturned:
             # There may be more than one city with the same name in the DB.
             # Return only the first city by id
             city = (
                 self.get_queryset()
-                .filter(name=city_name)
+                .filter(name__icontains=city_name)
                 .order_by('id')
                 .last()
             )

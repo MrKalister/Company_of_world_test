@@ -14,7 +14,7 @@ class GetWeatherUtilTest(TestCase):
     def setUpClass(cls) -> None:
         """Set up the test class with a test record in the database."""
         super().setUpClass()
-        cls.city: City = CityFactory()
+        cls.city: City = CityFactory(name='Тестовый город')
 
     def test_answer_from_util(self) -> None:
         """Test if get_weather returns expected data."""

@@ -16,7 +16,12 @@ weather_cache = {}
 
 if PLUG:
     CACHE_EXPIRY = 0
-test_data = {'temp': 12, 'pressure_mm': 764, 'wind_speed': 2.8}
+test_data = {
+    'city_name': 'Тестовый город',
+    'temp': 12,
+    'pressure_mm': 764,
+    'wind_speed': 2.8,
+}
 
 
 def get_weather(city: City) -> Dict[str, Union[str, int]]:
@@ -49,6 +54,7 @@ def get_weather(city: City) -> Dict[str, Union[str, int]]:
 
     # Parse the data and store it in the cache with the current timestamp
     weather_data: Dict[str, Union[str, int]] = parse_data(data)
+    weather_data['city_name'] = city.name
     weather_cache[city] = (weather_data, time.time())
 
     return weather_data

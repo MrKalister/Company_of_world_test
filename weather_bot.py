@@ -105,7 +105,6 @@ async def get_weather(update: Update, context: CallbackContext) -> None:
         response: requests.Response = requests.get(
             url, params={'city': city_name}
         )
-        print(response.status_code)
         if response.status_code == 429:
             gap: str = get_gap(response)
             msg: str = (
@@ -123,7 +122,7 @@ async def get_weather(update: Update, context: CallbackContext) -> None:
                 msg = 'Неожиданная ошибка, Повторите попытку позже.'
             else:
                 msg = (
-                    f'Прогноз погоды для {city_name}:\n'
+                    f'Текущая погода в городе {weather_data.get("city_name")} следующая:\n'
                     f'температура {weather_data.get("temp")} °C,\n'
                     f'давление {weather_data.get("pressure_mm")} мм рт. ст,\n'
                     f'скорость ветра {weather_data.get("wind_speed")} м/с.'
@@ -249,7 +248,6 @@ if __name__ == '__main__':
 
     handlers = [
         CommandHandler('start', start),
-        CommandHandler('forecast', say_city),
         MessageHandler(filters.Regex(r'^Узнать погоду$'), say_city),
         ConversationHandler(
             entry_points=[
